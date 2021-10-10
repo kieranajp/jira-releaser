@@ -18,12 +18,13 @@ type User struct {
 }
 
 type Release struct {
-	URL     string `json:"html_url,omitempty"`
-	ID      int64  `json:"id,omitempty"`
-	Name    string `json:"name,omitempty"`
-	Body    string `json:"body,omitempty"`
-	TagName string `json:"tag_name,omitempty"`
-	Author  *User  `json:"author,omitempty"`
+	URL         string `json:"html_url,omitempty"`
+	ID          int64  `json:"id,omitempty"`
+	Name        string `json:"name,omitempty"`
+	Body        string `json:"body,omitempty"`
+	TagName     string `json:"tag_name,omitempty"`
+	Author      *User  `json:"author,omitempty"`
+	PublishedAt string `json:"published_at,omitempty"`
 }
 
 func FetchRelease(repo *url.URL, tag string) (*Release, error) {
