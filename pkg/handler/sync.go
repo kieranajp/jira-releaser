@@ -10,7 +10,6 @@ import (
 
 func Sync(c *cli.Context) error {
 	u, err := url.ParseRequestURI(c.Args().Get(0))
-
 	if err != nil {
 		return cli.Exit("valid repo url must be provided", 1)
 	}
@@ -30,5 +29,5 @@ func Sync(c *cli.Context) error {
 		return cli.Exit(err.Error(), 1)
 	}
 
-	return j.SetFixVersions(tickets, release.TagName)
+	return j.SetFixVersions(tickets, release)
 }
