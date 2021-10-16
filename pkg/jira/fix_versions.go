@@ -1,7 +1,11 @@
 package jira
 
 import (
+	"fmt"
+	"io/ioutil"
 	"regexp"
+	"strconv"
+	"strings"
 
 	j "github.com/andygrunwald/go-jira"
 	"github.com/kieranajp/jira-releaser/pkg/github"
@@ -35,17 +39,12 @@ func (c *JiraAPI) SetFixVersions(issueURLs []string, release *github.Release) er
 			return err
 		}
 
-		// fixName := fmt.Sprintf("%s %s", repoName, tagName)
-		fixName := release.TagName
-		fixVersion := &j.FixVersion{
-			Name:        fixName,
-			Description: release.Body,
-			StartDate:   release.PublishedAt,
-			ReleaseDate: release.PublishedAt,
+		version, err := c.ensureFixVersionExists(iss, release)
+		if err != nil {
+			return err
 		}
 
-		iss.Fields.FixVersions = append(iss.Fields.FixVersions, fixVersion)
-		_, _, err = c.client.Issue.Update(iss)
+		err = c.addVersionToIssue(iss, version)
 		if err != nil {
 			return err
 		}
@@ -65,4 +64,54 @@ func (c *JiraAPI) getIssue(key string) (*j.Issue, error) {
 		return nil, err
 	}
 	return issue, nil
+}
+
+func parseRepoNameFromURL(url string) (string, string) {
+	r := regexp.MustCompile(`https:\/\/.+?\/(.+?)\/(.+?)\/`)
+	matches := r.FindStringSubmatch(url)
+	return matches[1], matches[2]
+}
+
+func (c *JiraAPI) ensureFixVersionExists(iss *j.Issue, release *github.Release) (*j.Version, error) {
+	projectID, _ := strconv.Atoi(iss.Fields.Project.ID)
+
+	owner, repo := parseRepoNameFromURL(release.URL)
+	fixName := fmt.Sprintf("%s/%s %s", owner, repo, release.TagName)
+	version := &j.Version{
+		ProjectID:   projectID,
+		Name:        fixName,
+		Description: fmt.Sprintf("%s\n\n(%s)", release.Body, release.URL),
+		ReleaseDate: release.PublishedAt,
+	}
+
+	_, resp, err := c.client.Version.Create(version)
+	if resp.StatusCode == 400 {
+		return version, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return version, nil
+}
+
+func (c *JiraAPI) addVersionToIssue(issue *j.Issue, version *j.Version) error {
+	reader := strings.NewReader(fmt.Sprintf(
+		`{"update": {"fixVersions": [{"add": {"name": "%s"}}]}}`,
+		version.Name))
+	req, err := c.client.NewRawRequest("PUT", fmt.Sprintf("rest/api/2/issue/%s", issue.ID), reader)
+	if err != nil {
+		return err
+	}
+
+	resp, err := c.client.Do(req, nil)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	_, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
