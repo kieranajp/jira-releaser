@@ -27,10 +27,13 @@ type Release struct {
 }
 
 func FetchRelease(repo *url.URL, tag string) (*Release, error) {
-	url := fmt.Sprintf("https://api.github.com/repos/%s/releases/tags/%s", repo.Path, tag)
+	url := fmt.Sprintf("https://api.github.com/repos%s/releases/tags/%s", repo.Path, tag)
 
 	var release Release
 	resp, err := http.Get(url)
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("HTTP error: %s", resp.Status)
+	}
 	if err != nil {
 		return nil, err
 	}

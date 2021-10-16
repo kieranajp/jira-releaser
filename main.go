@@ -15,10 +15,10 @@ func main() {
 		Usage: "Sync up Jira and Github releases",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:    "release",
-				Aliases: []string{"r"},
-				Value:   "latest",
-				Usage:   "Github release version",
+				Name:     "release",
+				Aliases:  []string{"r"},
+				Required: true,
+				Usage:    "Github release version",
 			},
 			&cli.StringFlag{
 				Name:    "github-token",
