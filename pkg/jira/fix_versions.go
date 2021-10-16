@@ -75,8 +75,8 @@ func parseRepoNameFromURL(url string) (string, string) {
 func (c *JiraAPI) ensureFixVersionExists(iss *j.Issue, release *github.Release) (*j.Version, error) {
 	projectID, _ := strconv.Atoi(iss.Fields.Project.ID)
 
-	owner, repo := parseRepoNameFromURL(release.URL)
-	fixName := fmt.Sprintf("%s/%s %s", owner, repo, release.TagName)
+	_, repo := parseRepoNameFromURL(release.URL)
+	fixName := fmt.Sprintf("%s %s", repo, release.TagName)
 	version := &j.Version{
 		ProjectID:   projectID,
 		Name:        fixName,
