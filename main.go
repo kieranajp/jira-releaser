@@ -27,10 +27,6 @@ func main() {
 				EnvVars: []string{"GITHUB_TOKEN"},
 			},
 			&cli.StringFlag{
-				Name:    "release-text",
-				EnvVars: []string{"GH_RELEASE_TEXT"},
-			},
-			&cli.StringFlag{
 				Name:    "jira-url",
 				Aliases: []string{"j"},
 				Value:   "https://jira.example.com",
