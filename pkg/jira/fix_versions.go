@@ -1,6 +1,8 @@
 package jira
 
 import (
+	"regexp"
+
 	j "github.com/andygrunwald/go-jira"
 )
 
@@ -43,8 +45,8 @@ func (c *JiraAPI) SetFixVersions(issueURLs []string, tagName string) error {
 }
 
 func getKeyFromURL(issueURL string) string {
-	// TODO: naive implementation
-	return issueURL[len(issueURL)-6:]
+	r := regexp.MustCompile(`[\s|]?([A-Z]+-[0-9]+)[\s:|]?`)
+	return r.FindString(issueURL)
 }
 
 func (c *JiraAPI) getIssue(key string) (*j.Issue, error) {
