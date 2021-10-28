@@ -21,6 +21,12 @@ func main() {
 				Usage:    "Github release version",
 			},
 			&cli.StringFlag{
+				Name:    "github-user",
+				Aliases: []string{"g"},
+				Usage:   "Github username",
+				EnvVars: []string{"GITHUB_USER"},
+			},
+			&cli.StringFlag{
 				Name:    "github-token",
 				Aliases: []string{"t"},
 				Usage:   "Github token",
