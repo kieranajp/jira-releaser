@@ -14,7 +14,8 @@ func Sync(c *cli.Context) error {
 		return cli.Exit("valid repo url must be provided", 1)
 	}
 
-	release, err := github.FetchRelease(u, c.String("release"))
+	gh := github.New(c.String("github-user"), c.String("github-token"))
+	release, err := gh.FetchRelease(u, c.String("release"))
 	if err != nil {
 		return cli.Exit(err.Error(), 1)
 	}

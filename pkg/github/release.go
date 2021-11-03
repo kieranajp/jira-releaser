@@ -27,13 +27,30 @@ type Release struct {
 	PublishedAt string `json:"published_at,omitempty"`
 }
 
-func FetchRelease(repo *url.URL, tag string) (*Release, error) {
+type Github struct {
+	user, token string
+}
+
+func New(user, token string) *Github {
+	return &Github{
+		user:  user,
+		token: token,
+	}
+}
+
+func (g *Github) FetchRelease(repo *url.URL, tag string) (*Release, error) {
+	var release Release
 	url := fmt.Sprintf("https://api.github.com/repos%s/releases/tags/%s", repo.Path, tag)
 
-	var release Release
-	resp, err := http.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.SetBasicAuth(g.user, g.token)
+	resp, err := http.DefaultClient.Do(req)
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("HTTP error: %s", resp.Status)
+		return nil, fmt.Errorf("unexpected HTTP response from Github: %s", resp.Status)
 	}
 	if err != nil {
 		return nil, err
