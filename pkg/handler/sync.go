@@ -20,7 +20,7 @@ func Sync(c *cli.Context) error {
 		return cli.Exit(err.Error(), 1)
 	}
 
-	tickets, err := github.ParseReleaseBody(release.Body)
+	issues, err := github.ExtractIssues(release.Body)
 	if err != nil {
 		return cli.Exit(err.Error(), 1)
 	}
@@ -30,5 +30,5 @@ func Sync(c *cli.Context) error {
 		return cli.Exit(err.Error(), 1)
 	}
 
-	return j.SetFixVersions(tickets, release)
+	return j.SetFixVersions(issues, release)
 }

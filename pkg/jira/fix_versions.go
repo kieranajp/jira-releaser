@@ -31,9 +31,8 @@ func New(base, user, pass string) (*JiraAPI, error) {
 	}, nil
 }
 
-func (c *JiraAPI) SetFixVersions(issueURLs []string, release *github.Release) error {
-	for _, issueURL := range issueURLs {
-		key := getKeyFromURL(issueURL)
+func (c *JiraAPI) SetFixVersions(issues []string, release *github.Release) error {
+	for _, key := range issues {
 		iss, err := c.getIssue(key)
 		if err != nil {
 			return err
@@ -51,11 +50,6 @@ func (c *JiraAPI) SetFixVersions(issueURLs []string, release *github.Release) er
 	}
 
 	return nil
-}
-
-func getKeyFromURL(issueURL string) string {
-	r := regexp.MustCompile(`[\s|]?([A-Z]+-[0-9]+)[\s:|]?`)
-	return r.FindString(issueURL)
 }
 
 func (c *JiraAPI) getIssue(key string) (*j.Issue, error) {

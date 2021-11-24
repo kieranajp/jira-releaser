@@ -2,12 +2,11 @@ package github
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
-
-	"github.com/gomarkdown/markdown/ast"
-	"github.com/gomarkdown/markdown/parser"
+	"regexp"
 )
 
 type User struct {
@@ -63,28 +62,13 @@ func (g *Github) FetchRelease(repo *url.URL, tag string) (*Release, error) {
 	return &release, nil
 }
 
-func ParseReleaseBody(body string) ([]string, error) {
-	p := parser.New()
-	ast := p.Parse([]byte(body))
+func ExtractIssues(body string) ([]string, error) {
+	re := regexp.MustCompile(`\b[A-Z]{2,}-\d+\b`)
 
-	return recursivelyGetLinks(ast)
-}
-
-func recursivelyGetLinks(n ast.Node) ([]string, error) {
-	links := make([]string, 0)
-
-	switch n.(type) {
-	case *ast.Link:
-		return []string{string(n.(*ast.Link).Destination)}, nil
-	default:
-		for _, child := range n.GetChildren() {
-			l, err := recursivelyGetLinks(child)
-			if err != nil {
-				return nil, err
-			}
-			links = append(links, l...)
-		}
+	matches := re.FindAllString(body, -1)
+	if len(matches) == 0 {
+		return nil, errors.New("no issues found in release body")
 	}
 
-	return links, nil
+	return matches, nil
 }

@@ -4,7 +4,6 @@ go 1.17
 
 require (
 	github.com/andygrunwald/go-jira v1.14.0
-	github.com/gomarkdown/markdown v0.0.0-20210918233619-6c1113f12c4a
 	github.com/rs/zerolog v1.25.0
 	github.com/urfave/cli/v2 v2.3.0
 )
