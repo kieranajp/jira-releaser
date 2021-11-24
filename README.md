@@ -18,11 +18,14 @@ In unix-speak, that's `curl | tar xf | chmod +x | mv`.
 You'll need to provide credentials for both Jira and Github for this to work properly. These can be provided either as command line flags, or environment variables:
 
 ```
+   --github-user, -g value          Github username [$GITHUB_USER]
    --github-token value, -t value   Github token [$GITHUB_TOKEN]
    --jira-url value, -j value       Jira URL (default: "https://jira.example.com") [$JIRA_URL]
    --jira-user value, -u value      Jira Username [$JIRA_USER]
    --jira-password value, -p value  Jira Password [$JIRA_PASS]
 ```
+
+A Jira personal access token can also be used instead of a password. 
 
 You will also need to provide the URL to the appropriate Github repository, and the release name (as `--release`). Assuming the above are all set as environment variables, using the tool therefore looks like:
 
