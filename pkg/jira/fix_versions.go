@@ -6,9 +6,11 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	j "github.com/andygrunwald/go-jira"
 	"github.com/kieranajp/jira-releaser/pkg/github"
+	"github.com/pterm/pterm"
 )
 
 type JiraAPI struct {
@@ -32,22 +34,40 @@ func New(base, user, pass string) (*JiraAPI, error) {
 }
 
 func (c *JiraAPI) SetFixVersions(issues []string, release *github.Release) error {
+	p, _ := pterm.DefaultProgressbar.WithTotal(len(issues)).WithTitle("Releasing issues").Start()
+	failed := make([]string, 0)
+
 	for _, key := range issues {
+		p.UpdateTitle(fmt.Sprintf("Fetching issue %s", key))
 		iss, err := c.getIssue(key)
 		if err != nil {
-			return err
+			pterm.Warning.Printfln("Unable to find issue %s", key)
+			failed = append(failed, key)
+			continue
 		}
+
+		time.Sleep(time.Millisecond * 300)
 
 		version, err := c.ensureFixVersionExists(iss, release)
 		if err != nil {
 			return err
 		}
 
+		p.UpdateTitle(fmt.Sprintf("Setting FixVersion for %s", key))
 		err = c.addVersionToIssue(iss, version)
 		if err != nil {
-			return err
+			failed = append(failed, key)
+			pterm.Warning.Printfln("Unable to set fix version for %s", key)
+			continue
 		}
+		pterm.Success.Printfln("Updated %s", key)
+
+		p.Increment()
 	}
+
+	p.Stop()
+
+	printReport(issues, failed)
 
 	return nil
 }
@@ -74,7 +94,7 @@ func (c *JiraAPI) ensureFixVersionExists(iss *j.Issue, release *github.Release) 
 	version := &j.Version{
 		ProjectID:   projectID,
 		Name:        fixName,
-		Description: fmt.Sprintf("%s\n\n(%s)", release.Body, release.URL),
+		Description: fmt.Sprintf("%s\n\n(%s)", release.Name, release.URL),
 		ReleaseDate: release.PublishedAt,
 	}
 
@@ -108,4 +128,26 @@ func (c *JiraAPI) addVersionToIssue(issue *j.Issue, version *j.Version) error {
 	}
 
 	return nil
+}
+
+func printReport(issues, failed []string) {
+	pterm.DefaultSection.WithLevel(2).Println("Issue report")
+	d := pterm.TableData{{"Issue", "Status"}}
+	for _, s := range issues {
+		if stringInSlice(s, failed) {
+			d = append(d, []string{pterm.LightRed(s), pterm.LightRed("failed")})
+		} else {
+			d = append(d, []string{s, pterm.LightGreen("updated")})
+		}
+	}
+	pterm.DefaultTable.WithHasHeader().WithData(d).Render()
+}
+
+func stringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
 }

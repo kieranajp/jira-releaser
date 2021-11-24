@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/kieranajp/jira-releaser/pkg/handler"
+	"github.com/pterm/pterm"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
@@ -56,6 +57,13 @@ func main() {
 	}
 
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	pterm.DefaultCenter.Print(pterm.DefaultHeader.
+		WithFullWidth().
+		WithBackgroundStyle(pterm.NewStyle(pterm.BgLightBlue)).
+		WithTextStyle(pterm.NewStyle(pterm.FgWhite)).
+		WithMargin(10).
+		Sprint("JIRA Releaser"))
+
 	err := app.Run(os.Args)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Exit")
